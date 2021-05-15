@@ -10,7 +10,7 @@ def env(item):
 	return os.getenv(f"{item}")
 
 PREFIX = env('PREFIX')
-bot = commands.AutoShardedBot(command_prefix=[ f"{PREFIX}" f"<@!{env('CLIENT_ID')}>", f"<@!{env('CLIENT_ID')}> " ])
+bot = commands.AutoShardedBot(command_prefix=[ f"{PREFIX}", f"<@!{env('CLIENT_ID')}>", f"<@!{env('CLIENT_ID')}> " ])
 
 @bot.event
 async def on_ready():
@@ -20,18 +20,18 @@ async def on_ready():
 	print(f"----- Developed By Benitz Original#1317 -----\n\nCLIENT NAME: {bot.user.name}\nCLIENT ID: {bot.user.id}\nCLIENT OWNER: {env('OWNER_ID')}\nACTIVE SERVERS: {len(bot.guilds)}\nSERVER LIST: {ACTIVE_GUILD_LIST}\nSOURCE CODE: https://github.com/BenitzCoding/Safe-Eval")
 
 async def MALICIOUS_INJECTION_CHECK(code):
-	DISALLOWED_ENTITIES = ["importos", "importsys", "importdiscord"]
+	DISALLOWED_ENTITIES = ["importos", "importsys", "importdiscord", "os.", ".getenv", "importsubprocess"]
 	code = code.replace(" ", "")
 	code = code.replace("	", "")
 	for ENTITIES in DISALLOWED_ENTITIES:
-		if ENTITIES in code:
-			await ctx.send(":no_entry_sign: Your code wasn't proccessed due to security measures.")
+		if ENTITIES in code.lower():
 			return "MALICIOUS CODE DETECTED"
 
 @bot.command(name='e', aliases=["eval"])
 async def _e(ctx, *, command=None):
 	
-	if MALICIOUS_INJECTION_CHECK(command) == "MALICIOUS CODE DETECTED":
+	if await MALICIOUS_INJECTION_CHECK(command) == "MALICIOUS CODE DETECTED":
+		await ctx.send(":no_entry_sign: Your code wasn't proccessed due to security measures.")
 		return
 	
 	if match := re.fullmatch(r"(?:\n*)?`(?:``(?:py(?:thon)?\n)?((?:.|\n)*)``|(.*))`", command, re.DOTALL):
