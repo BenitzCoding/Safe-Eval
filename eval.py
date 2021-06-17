@@ -28,7 +28,7 @@ class Eval(commands.Cog):
 			ACTIVE_GUILD_LIST.append(guild.name)
 		print(f"----- Developed By Benitz Original#1317 -----\n\nCLIENT NAME: {self.bot.user.name}\nCLIENT ID: {self.bot.user.id}\nCLIENT OWNER: {self.env('OWNER_ID')}\nACTIVE SERVERS: {len(self.bot.guilds)}\nSERVER LIST: {ACTIVE_GUILD_LIST}\nSOURCE CODE: https://github.com/BenitzCoding/Safe-Eval\n\n----- Developed By Benitz Original#1317 -----")
 
-	async def MALICIOUS_INJECTION_CHECK(self, code):
+	async def malicious_injection_check(self, code):
 		DISALLOWED_ENTITIES = ["while", ".close(", "new_event_loop(", "get_event_loop(", ".stop(", "importrequests", "__import__", "importos", "importsys", "importdiscord", "os.", ".getenv", "importsubprocess", "exec(", ".logout", "bot.", "eval(", ".get_event_loop(", ".create_task(", "(ctx)", "importimportlib", ".system("]
 		code = code.replace(" ", "")
 		code = code.replace("	", "")
@@ -89,7 +89,7 @@ class Eval(commands.Cog):
 	@commands.command(name='eval', aliases=["e"])
 	async def eval(self, ctx, *, command=None):
 		async with timeout(2):
-			if await self.MALICIOUS_INJECTION_CHECK(command) == "MALICIOUS CODE DETECTED":
+			if await self.malicious_injection_check(command) == "MALICIOUS CODE DETECTED":
 				await ctx.send(f"{ctx.author.mention} :no_entry_sign: Your code wasn't proccessed due to security measures.")
 				return
 			try:
