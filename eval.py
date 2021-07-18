@@ -7,29 +7,33 @@ import discord
 import async_timeout
 import asyncio
 import multiprocessing
+import RestrictedPython
 
+from RestrictedPython import compile_restricted as compile
+from RestrictedPython import safe_globals
+from RestrictedPython import safe_builtins
 from async_timeout import timeout
 from discord.ext import commands
 
 ESCAPE_REGEX = re.compile("[`\u202E\u200B]{3,}")
+
+def env(item):
+	return os.getenv(f"{item}")
 
 class Eval(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		print("Loading Evaluation Code.\n\n")
 
-	def env(self, item):
-		return os.getenv(f"{item}")
-
 	@commands.Cog.listener()
 	async def on_ready(self):
 		ACTIVE_GUILD_LIST = []
 		for guild in self.bot.guilds:
 			ACTIVE_GUILD_LIST.append(guild.name)
-		print(f"----- Developed By Benitz Original#1317 -----\n\nCLIENT NAME: {self.bot.user.name}\nCLIENT ID: {self.bot.user.id}\nCLIENT OWNER: {self.env('OWNER_ID')}\nACTIVE SERVERS: {len(self.bot.guilds)}\nSERVER LIST: {ACTIVE_GUILD_LIST}\nSOURCE CODE: https://github.com/BenitzCoding/Safe-Eval\n\n----- Developed By Benitz Original#1317 -----")
+		print(f"----- Developed By Benitz Original#1317 -----\n\nCLIENT NAME: {self.bot.user.name}\nCLIENT ID: {self.bot.user.id}\nCLIENT OWNER: {env('OWNER_ID')}\nACTIVE SERVERS: {len(self.bot.guilds)}\nSERVER LIST: {ACTIVE_GUILD_LIST}\nSOURCE CODE: https://github.com/BenitzCoding/Safe-Eval\n\n----- Developed By Benitz Original#1317 -----")
 
 	async def MALICIOUS_INJECTION_CHECK(self, code):
-		DISALLOWED_ENTITIES = ["while", ".close(", "new_event_loop(", "get_event_loop(", ".stop(", "importrequests", "__import__", "importos", "importsys", "importdiscord", "os.", ".getenv", "importsubprocess", "exec(", ".logout", "bot.", "eval(", ".get_event_loop(", ".create_task(", "(ctx)", "importimportlib", ".system("]
+		DISALLOWED_ENTITIES = ["while", ".close(", "new_event_loop(", "get_event_loop(", ".stop("]
 		code = code.replace(" ", "")
 		code = code.replace("	", "")
 		if "for" in code:
@@ -54,7 +58,8 @@ class Eval(commands.Cog):
 			str_obj = io.StringIO()  # Retrieves a stream of data
 			try:
 				with contextlib.redirect_stdout(str_obj):
-					exec(code)
+					byte_code = compile(code, filename='<inline code>', mode=exec)
+					exec(byte_code, safe_globals, {'__builtins__': safe_builtins}, None)
 
 				output = str_obj.getvalue()
 				truncated = False
@@ -101,11 +106,9 @@ class Eval(commands.Cog):
 					return await ctx.send(f"⚠ Your code completed with execution code 2\n```\n[Timed Out]\n```")
 				else:
 					return await ctx.send(self.evaluation_task(ctx, command))
-			except TimeoutError:
+			except Exception as e:
+				print(e)
 				return await ctx.send(f"⚠ Your code completed with execution code 2\n```\n[Timed Out]\n```")
-			return await ctx.send(self.evaluation_task(ctx, command))
-			embed = discord.Embed(description="Error: Invalid format", color=0xED2525)
-			return await ctx.send(embed=embed)
 
 	@commands.Cog.listener()
 	async def on_command_error(self, ctx, err):
